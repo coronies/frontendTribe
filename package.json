@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "axios": "^1.10.0",
+    "js-cookie": "^3.0.5",
+    "react-router-dom": "^7.6.2"
+  },
+  "devDependencies": {
+    "@types/js-cookie": "^3.0.6"
+  }
+}
