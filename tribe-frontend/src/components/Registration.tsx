@@ -151,7 +151,7 @@ export function Registration() {
     }
   };
 
-  return (
+    return (
     <div className="w-full">
       <div className="w-full">
         <h2 className="text-center text-3xl font-extrabold text-gray-900">
