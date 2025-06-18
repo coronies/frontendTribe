@@ -1,0 +1,58 @@
+.loading-spinner-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-spinner {
+  position: relative;
+}
+
+.boxes-container {
+  display: grid;
+  grid-template-areas: 
+    "box1 box2"
+    "box3 box2";
+  gap: 2px;
+  animation: spin 1.5s infinite;
+}
+
+.box {
+  width: 8px;
+  height: 8px;
+  border-radius: 1px;
+}
+
+.box1 {
+  grid-area: box1;
+  animation: fadeInOut 1.5s infinite;
+}
+
+.box2 {
+  grid-area: box2;
+  height: 18px;
+  animation: fadeInOut 1.5s infinite 0.5s;
+}
+
+.box3 {
+  grid-area: box3;
+  animation: fadeInOut 1.5s infinite 1s;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeInOut {
+  0%, 100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+} 
