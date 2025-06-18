@@ -5,6 +5,7 @@ import './styles/background-effects.css';
 import { AuthProvider } from './contexts/AuthContext';
 import { AuthCard } from './components/AuthCard';
 import { useTokenRefresh } from './hooks/useTokenRefresh';
+import ProtectedRoute from './components/ProtectedRoute'; // Use later for protected routes
 
 // Create a client
 const queryClient = new QueryClient({
@@ -40,12 +41,24 @@ function AppContent() {
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<AuthCard />} />
             <Route path="/register" element={<AuthCard />} />
+            <Route path="/reset-password" element={<AuthCard />} />
           </Routes>
         </div>
       </div>
     </>
   );
 }
+/* EXAMPLE ROUTES
+  Protected routes for any authenticated user
+  <Route element={<ProtectedRoute />}>
+    <Route path="/dashboard" element={<Dashboard />} />
+  </Route>
+
+  Protected route for administrator roles (role_id: 1,2,3,etc)
+  <Route element={<ProtectedRoute requiredRole={[1,2,3,etc]} />}>
+    <Route path="/admin" element={<AdminPanel />} />
+  </Route>
+*/
 
 function App() {
   return (
