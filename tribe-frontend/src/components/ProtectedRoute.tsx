@@ -11,7 +11,7 @@ const ProtectedRoute = ({ requiredRole }: ProtectedRouteProps) => {
 
   // 1. Show a loading indicator while auth state is being determined
   if (loading) {
-    return <LoadingSpinner />; // Replace with a spinner or loading component if desired
+    return <LoadingSpinner />;
   }
 
   // 2. If not authenticated, redirect to login
@@ -32,6 +32,7 @@ const ProtectedRoute = ({ requiredRole }: ProtectedRouteProps) => {
       // Optionally, redirect or show a message
       return <div>Unauthorized: You do not have access to this page.</div>;
       // Or: return <Navigate to="/unauthorized" replace />;
+      // Will have to create an Unauthorized route/component
     }
   }
 
