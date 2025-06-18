@@ -14,20 +14,19 @@ export function Registration() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedUniversity, setSelectedUniversity] = useState<University | null>(null);
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState<RegisterData>({
     name: '',
     email: '',
     password: '',
-    confirm_password: '',
     university_id: '',
-    role_id: 1, // default to student
-    club_name: '',
-    club_email: '',
-    club_description: '',
-    is_verified: false,
+    role_id: 0, // 0 - student, 2 - club representative
+    is_verified: true, // students are verified by default
   });
 
-  const [errors, setErrors] = useState<Partial<Record<keyof RegisterData | 'general', string>>>({});
+  const [errors, setErrors] = useState<Partial<Record<keyof RegisterData | 'confirm_password' | 'general', string>>>({});
   const { register, loading, error } = useAuth();
   const { universities, isLoading: universitiesLoading } = useUniversities(searchQuery);
   const navigate = useNavigate();
@@ -56,12 +55,20 @@ export function Registration() {
     setSearchQuery(university.name);
   };
 
+  const handleRoleChange = (selectedRole: UserRole) => {
+    setRole(selectedRole);
+    setFormData(prev => ({
+      ...prev,
+      role_id: selectedRole === 'student' ? 0 : 2, // 0 for student, 2 for club representative
+      is_verified: selectedRole === 'student' ? true : false // Students auto-verified, clubs choose
+    }));
+  };
+
   const validateForm = (): boolean => {
     const newErrors: typeof errors = {};
     let isValid = true;
 
-    // Common validations
-    if (role === 'student' && !formData.name) {
+    if (!formData.name) {
       newErrors.name = 'Name is required';
       isValid = false;
     }
@@ -82,7 +89,7 @@ export function Registration() {
       isValid = false;
     }
 
-    if (formData.password !== formData.confirm_password) {
+    if (formData.password !== confirmPassword) {
       newErrors.confirm_password = 'Passwords do not match';
       isValid = false;
     }
@@ -92,32 +99,21 @@ export function Registration() {
       isValid = false;
     }
 
-    // Role-specific validations
-    if (role === 'club_representative') {
-      if (!formData.club_name) {
-        newErrors.club_name = 'Club name is required';
-        isValid = false;
-      }
-      if (!formData.club_email) {
-        newErrors.club_email = 'Club email is required';
-        isValid = false;
-      }
-      if (!formData.club_description) {
-        newErrors.club_description = 'Club description is required';
-        isValid = false;
-      }
-    }
-
     setErrors(newErrors);
     return isValid;
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    
+    if (name === 'confirm_password') {
+      setConfirmPassword(value);
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
 
     // Clear field-specific error when user starts typing
     if (errors[name as keyof typeof errors]) {
@@ -128,20 +124,13 @@ export function Registration() {
     }
   };
 
-  const handleRoleChange = (selectedRole: UserRole) => {
-    setRole(selectedRole);
-    setFormData(prev => ({
-      ...prev,
-      role_id: selectedRole === 'student' ? 1 : 2
-    }));
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     console.log('🔍 Form validation starting...');
     console.log('📋 Form data:', formData);
     console.log('🏫 Selected university:', selectedUniversity);
+    console.log('👤 Selected role:', role, 'role_id:', formData.role_id);
     
     if (!validateForm()) {
       console.log('❌ Form validation failed');
@@ -162,7 +151,7 @@ export function Registration() {
     }
   };
 
-    return (
+  return (
     <div className="w-full">
       <div className="w-full">
         <h2 className="text-center text-3xl font-extrabold text-gray-900">
@@ -212,95 +201,48 @@ export function Registration() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Left Column - Personal/Club Information */}
+              {/* Left Column - Personal Information */}
               <div className="space-y-6">
                 <h3 className="text-lg font-medium text-gray-900">
-                  {role === 'student' ? 'Personal Information' : 'Club Information'}
+                  Personal Information
                 </h3>
 
-                {role === 'student' ? (
-                  <>
-                    <div className="shadow-[inset_6px_6px_10px_0_rgba(0,0,0,0.1),inset_-6px_-6px_10px_0_rgba(255,255,255,0.8)]
-                      rounded-2xl bg-gray-100 p-2">
-                      <input
-                        type="text"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 bg-transparent border-none focus:ring-0
-                          text-gray-700 placeholder-gray-400 tracking-tight"
-                        placeholder="Full Name"
-                        required
-                      />
-                    </div>
-                    {errors.name && (
-                      <div className="mt-2 text-red-600 text-sm">
-                        {errors.name}
-                      </div>
-                    )}
+                <div className="shadow-[inset_6px_6px_10px_0_rgba(0,0,0,0.1),inset_-6px_-6px_10px_0_rgba(255,255,255,0.8)]
+                  rounded-2xl bg-gray-100 p-2">
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 bg-transparent border-none focus:ring-0
+                      text-gray-700 placeholder-gray-400 tracking-tight"
+                    placeholder={role === 'club_representative' ? 'Your Full Name' : 'Full Name'}
+                    required
+                  />
+                </div>
+                {errors.name && (
+                  <div className="mt-2 text-red-600 text-sm">
+                    {errors.name}
+                  </div>
+                )}
 
-                    <div className="shadow-[inset_6px_6px_10px_0_rgba(0,0,0,0.1),inset_-6px_-6px_10px_0_rgba(255,255,255,0.8)]
-                      rounded-2xl bg-gray-100 p-2">
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 bg-transparent border-none focus:ring-0
-                          text-gray-700 placeholder-gray-400 tracking-tight"
-                        placeholder="Email Address"
-                        required
-                      />
-                    </div>
-                    {errors.email && (
-                      <div className="mt-2 text-red-600 text-sm">
-                        {errors.email}
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <div className="shadow-[inset_6px_6px_10px_0_rgba(0,0,0,0.1),inset_-6px_-6px_10px_0_rgba(255,255,255,0.8)]
-                      rounded-2xl bg-gray-100 p-2">
-                      <input
-                        type="text"
-                        name="club_name"
-                        value={formData.club_name}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 bg-transparent border-none focus:ring-0
-                          text-gray-700 placeholder-gray-400 tracking-tight"
-                        placeholder="Club Name"
-                        required
-                      />
-                    </div>
-
-                    <div className="shadow-[inset_6px_6px_10px_0_rgba(0,0,0,0.1),inset_-6px_-6px_10px_0_rgba(255,255,255,0.8)]
-                      rounded-2xl bg-gray-100 p-2">
-                      <input
-                        type="email"
-                        name="club_email"
-                        value={formData.club_email}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 bg-transparent border-none focus:ring-0
-                          text-gray-700 placeholder-gray-400 tracking-tight"
-                        placeholder="Club Email"
-                        required
-                      />
-                    </div>
-
-                    <div className="shadow-[inset_6px_6px_10px_0_rgba(0,0,0,0.1),inset_-6px_-6px_10px_0_rgba(255,255,255,0.8)]
-                      rounded-2xl bg-gray-100 p-2">
-                      <textarea
-                        name="club_description"
-                        value={formData.club_description}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 bg-transparent border-none focus:ring-0
-                          text-gray-700 placeholder-gray-400 tracking-tight"
-                        placeholder="Club Description"
-                        required
-                      />
-                    </div>
-                  </>
+                <div className="shadow-[inset_6px_6px_10px_0_rgba(0,0,0,0.1),inset_-6px_-6px_10px_0_rgba(255,255,255,0.8)]
+                  rounded-2xl bg-gray-100 p-2">
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 bg-transparent border-none focus:ring-0
+                      text-gray-700 placeholder-gray-400 tracking-tight"
+                    placeholder={role === 'club_representative' ? 'Your Email Address' : 'Email Address'}
+                    required
+                  />
+                </div>
+                {errors.email && (
+                  <div className="mt-2 text-red-600 text-sm">
+                    {errors.email}
+                  </div>
                 )}
 
                 <div className="relative university-dropdown">
@@ -364,46 +306,88 @@ export function Registration() {
               <div className="space-y-6">
                 <h3 className="text-lg font-medium text-gray-900">Account Security</h3>
                 
-                <div className="shadow-[inset_6px_6px_10px_0_rgba(0,0,0,0.1),inset_-6px_-6px_10px_0_rgba(255,255,255,0.8)]
-                  rounded-2xl bg-gray-100 p-2">
-                  <input
-                    type="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-transparent border-none focus:ring-0
-                      text-gray-700 placeholder-gray-400 tracking-tight"
-                    placeholder="Password"
-                    required
-                  />
-                </div>
-                {errors.password && (
-                  <div className="mt-2 text-red-600 text-sm">
-                    {errors.password}
+                <div className="relative">
+                  <div className="shadow-[inset_6px_6px_10px_0_rgba(0,0,0,0.1),inset_-6px_-6px_10px_0_rgba(255,255,255,0.8)]
+                    rounded-2xl bg-gray-100 p-2">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      name="password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 pr-12 bg-transparent border-none focus:ring-0
+                        text-gray-700 placeholder-gray-400 tracking-tight"
+                      placeholder="Password"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 
+                        p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-200 
+                        transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? (
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 11-4.243-4.243m4.243 4.243L9.88 9.88" />
+                        </svg>
+                      ) : (
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.639 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.639 0-8.573-3.007-9.963-7.178z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                      )}
+                    </button>
                   </div>
-                )}
+                  {errors.password && (
+                    <div className="mt-2 text-red-600 text-sm">
+                      {errors.password}
+                    </div>
+                  )}
+                </div>
 
-                <div className="shadow-[inset_6px_6px_10px_0_rgba(0,0,0,0.1),inset_-6px_-6px_10px_0_rgba(255,255,255,0.8)]
-                  rounded-2xl bg-gray-100 p-2">
-                  <input
-                    type="password"
-                    name="confirm_password"
-                    value={formData.confirm_password}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-transparent border-none focus:ring-0
-                      text-gray-700 placeholder-gray-400 tracking-tight"
-                    placeholder="Confirm Password"
-                    required
-                  />
-                </div>
-                {errors.confirm_password && (
-                  <div className="mt-2 text-red-600 text-sm">
-                    {errors.confirm_password}
+                <div className="relative">
+                  <div className="shadow-[inset_6px_6px_10px_0_rgba(0,0,0,0.1),inset_-6px_-6px_10px_0_rgba(255,255,255,0.8)]
+                    rounded-2xl bg-gray-100 p-2">
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      name="confirm_password"
+                      value={confirmPassword}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 pr-12 bg-transparent border-none focus:ring-0
+                        text-gray-700 placeholder-gray-400 tracking-tight"
+                      placeholder="Confirm Password"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 
+                        p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-200 
+                        transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                      aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                    >
+                      {showConfirmPassword ? (
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 11-4.243-4.243m4.243 4.243L9.88 9.88" />
+                        </svg>
+                      ) : (
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.639 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.639 0-8.573-3.007-9.963-7.178z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                      )}
+                    </button>
                   </div>
-                )}
+                  {errors.confirm_password && (
+                    <div className="mt-2 text-red-600 text-sm">
+                      {errors.confirm_password}
+                    </div>
+                  )}
+                </div>
 
                 {role === 'club_representative' && (
-                  <div className="mt-6 bg-gray-900 text-white p-4 rounded-lg">
+                  <div className="bg-gray-900 text-white p-4 rounded-lg">
                     <h4 className="text-sm font-medium flex items-center">
                       🏆 Official Club Verification
                     </h4>

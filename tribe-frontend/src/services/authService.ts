@@ -1,22 +1,10 @@
 import axios from 'axios';
-import { cookieManager, type TokenData, type UserData } from '../utils/cookieManager';
+import {type TokenData, type UserData } from '../utils/typesCookies';
+import { cookieManager } from '../utils/cookieManager';
 import { API_BASE_URL } from '../contexts/config';
-import type { User, LoginResponse, RegisterData } from '../contexts/types';
-
-interface AuthResponse {
-  success: boolean;
-  accessToken: string;
-  refreshToken: string;
-  message: string;
-  user: User;
-}
-
-interface RefreshResponse {
-  success: boolean;
-  accessToken: string;
-  refreshToken: string;
-}
-
+import type {LoginResponse, RegisterData } from '../contexts/types';
+import type { AuthResponse, RefreshResponse } from './tokenTypes';
+import type { User } from '../contexts/types';
 class AuthService {
   private isRefreshing = false;
   private refreshPromise: Promise<string> | null = null;
@@ -118,12 +106,10 @@ class AuthService {
     try {
       console.log('🔍 Frontend form data received:', userData);
       
-      // Transform frontend data to backend format - exact order as backend expects
+      // Transform frontend data to backend format - exact format as API expects
       const backendData = {
-        name: userData.role_id === 1 
-          ? userData.name
-          : userData.club_name,
-        email: userData.role_id === 1 ? userData.email : userData.club_email,
+        name: userData.name,
+        email: userData.email,
         password: userData.password,
         role: userData.role_id,
         isVerified: userData.is_verified,

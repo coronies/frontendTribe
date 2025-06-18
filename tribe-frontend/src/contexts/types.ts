@@ -26,12 +26,8 @@ export interface RegisterData {
   name: string;
   email: string;
   password: string;
-  confirm_password: string;
   university_id: string;
   role_id: number;
-  club_name?: string;
-  club_email?: string;
-  club_description?: string;
   is_verified: boolean;
 }
 

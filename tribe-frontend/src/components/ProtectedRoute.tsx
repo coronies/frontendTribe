@@ -1,5 +1,6 @@
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate, Outlet } from 'react-router-dom';
+import { LoadingSpinner } from './LoadingSpinner';
 
 interface ProtectedRouteProps {
     requiredRole?: number | number[]; // role_id is a number in your AuthContext
@@ -10,7 +11,7 @@ const ProtectedRoute = ({ requiredRole }: ProtectedRouteProps) => {
 
   // 1. Show a loading indicator while auth state is being determined
   if (loading) {
-    return <div>Loading...</div>; // Replace with a spinner or loading component if desired
+    return <LoadingSpinner />; // Replace with a spinner or loading component if desired
   }
 
   // 2. If not authenticated, redirect to login

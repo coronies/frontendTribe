@@ -36,7 +36,7 @@ export const useTokenRefresh = () => {
     // Start initial check
     initializeTokenCheck();
 
-    // Set up periodic refresh (every 14 minutes)
+    // Set up periodic refresh every 14 minutes (1 minute before 15-minute access token expires)
     intervalRef.current = setInterval(checkAndRefreshToken, 14 * 60 * 1000);
 
     // Cleanup interval on unmount
