@@ -1,4 +1,4 @@
-import React, { useState, createContext, useContext, useEffect } from 'react';
+import { useState, createContext, useContext, useEffect } from 'react';
 import { Login } from './Login';
 import { Registration } from './Registration';
 import '../styles/flip.css';

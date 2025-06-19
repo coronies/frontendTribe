@@ -5,9 +5,12 @@ import './styles/background-effects.css';
 import { AuthProvider } from './contexts/AuthContext';
 import { AuthCard } from './components/AuthCard';
 import { useTokenRefresh } from './hooks/useTokenRefresh';
-import ProtectedRoute from './components/ProtectedRoute'; // Use later for protected routes
+import { HomePage } from './pages/HomePage';
+// import StudentNavbar from "./components/studentNavbar.tsx";
+import HomeNavbar from "./components/homeNavbar.tsx";
+// import ClubNavbar from "./components/clubNavbar.tsx"; // Use later for protected routes
 
-// Create a client
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -27,6 +30,9 @@ function AppContent() {
     <>
       {/* Main container */}
       <div className="relative min-h-screen overflow-hidden bg-sky-50">
+        {/* Navbar */}
+        {/*<StudentNavbar />*/}
+        <HomeNavbar />
         {/* Background decorative elements */}
         <div className="absolute inset-0 mesh-gradient" />
         
@@ -34,11 +40,11 @@ function AppContent() {
         <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-sky-200/40 floating glowing blur-3xl" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full bg-blue-200/40 floating glowing blur-3xl" style={{ animationDelay: '-2s' }} />
         <div className="absolute top-1/2 left-1/2 w-96 h-96 rounded-full bg-indigo-200/40 floating glowing blur-3xl" style={{ animationDelay: '-4s' }} />
-        
         {/* Content container */}
         <div className="relative z-10">
           <Routes>
-            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="/" element={<Navigate to="/homePage" replace />} />
+            <Route path="/homePage" element={<HomePage />} />
             <Route path="/login" element={<AuthCard />} />
             <Route path="/register" element={<AuthCard />} />
             <Route path="/reset-password" element={<AuthCard />} />
